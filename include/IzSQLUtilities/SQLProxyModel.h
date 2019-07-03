@@ -34,7 +34,7 @@ namespace IzSQLUtilities
 		// returns source model for this proxy
 		// if isInitializing = true is passed function will additionaly use checkSource()
 		// it is used to silence warnings during setupSourceModel()
-		SQLModel* sourceModel(bool isInitializing = false) const;
+		Q_INVOKABLE SQLModel* sourceModel(bool isInitializing = false) const;
 
 		// returns source row for given proxy row
 		// returns -1 if invalid index was requested

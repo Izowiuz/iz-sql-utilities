@@ -23,10 +23,23 @@ IzSQLUtilities::SQLTableProxyModel::SQLTableProxyModel(QObject* parent)
 	setSourceModel(nullptr);
 
 	// source model connects
-	connect(m_sourceModel, &SQLTableModel::refreshStarted, this, [this]() {
-		m_filtersApplied = false;
-		m_filteredIndexes.clear();
-		m_filters.clear();
+	connect(m_sourceModel, &SQLTableModel::dataRefreshEnded, this, [this]() {
+		// ony reset filtering if model executed new query
+		if (m_sourceModel->executedNewQuery()) {
+			m_filtersApplied = false;
+			m_filteredIndexes.clear();
+			m_filters.clear();
+		} else {
+			filterData();
+		}
+	});
+
+	connect(this, &SQLTableProxyModel::isFilteringChanged, this, [this]() {
+		if (isFiltering()) {
+			m_sourceModel->layoutAboutToBeChanged();
+		} else {
+			m_sourceModel->layoutChanged();
+		}
 	});
 }
 
@@ -52,12 +65,23 @@ bool IzSQLUtilities::SQLTableProxyModel::filterAcceptsColumn(int source_column, 
 	return !m_hiddenColumns.contains(source_column) && !m_excludedColumns.contains(source_column);
 }
 
+QSet<int> IzSQLUtilities::SQLTableProxyModel::hiddenColumns() const
+{
+	return m_hiddenColumns;
+}
+
+void IzSQLUtilities::SQLTableProxyModel::setHiddenColumns(const QSet<int> &hiddenColumns)
+{
+	m_hiddenColumns = hiddenColumns;
+	invalidate();
+}
+
 QSet<int> IzSQLUtilities::SQLTableProxyModel::excludedColumns() const
 {
 	return m_excludedColumns;
 }
 
-void IzSQLUtilities::SQLTableProxyModel::setExcludedColumns(const QSet<int> &excludedColumns)
+void IzSQLUtilities::SQLTableProxyModel::setExcludedColumns(const QSet<int>& excludedColumns)
 {
 	if (m_excludedColumns != excludedColumns) {
 		m_excludedColumns = excludedColumns;
@@ -65,14 +89,43 @@ void IzSQLUtilities::SQLTableProxyModel::setExcludedColumns(const QSet<int> &exc
 	}
 }
 
+int IzSQLUtilities::SQLTableProxyModel::sourceRow(int proxyRow) const
+{
+	return mapToSource(index(proxyRow, 0)).row();
+}
+
+int IzSQLUtilities::SQLTableProxyModel::sourceColumn(int proxyColumn) const
+{
+	return mapToSource(index(0, proxyColumn)).column();
+}
+
+int IzSQLUtilities::SQLTableProxyModel::proxyRow(int sourceRow) const
+{
+	return mapFromSource(m_sourceModel->index(sourceRow, 0)).row();
+}
+
+int IzSQLUtilities::SQLTableProxyModel::proxyColumn(int sourceColumn) const
+{
+	return mapFromSource(m_sourceModel->index(0, sourceColumn)).column();
+}
+
+QModelIndex IzSQLUtilities::SQLTableProxyModel::sourceIndex(int proxyRow, int proxyColumn) const
+{
+	return mapToSource(index(proxyRow, proxyColumn));
+}
+
+QModelIndex IzSQLUtilities::SQLTableProxyModel::proxyIndex(int sourceRow, int sourceColumn) const
+{
+	return mapFromSource(m_sourceModel->index(sourceRow, sourceColumn));
+}
+
 void IzSQLUtilities::SQLTableProxyModel::onDataFiltered()
 {
-
 	if (!m_filterFutureWatcher->isCanceled()) {
 		m_isFiltering     = false;
 		m_filteredIndexes = m_filterFutureWatcher->result();
-		emit isFilteringChanged();
 		invalidateFilter();
+		emit isFilteringChanged();
 	}
 }
 
@@ -124,7 +177,8 @@ void IzSQLUtilities::SQLTableProxyModel::changeColumnVisibilitiy(int column, boo
 
 void IzSQLUtilities::SQLTableProxyModel::filterData()
 {
-	if (m_sourceModel->isRefreshing()) {
+	// check state of source model
+	if (m_sourceModel->isRefreshingData()) {
 		qWarning() << "filterData() called during model refreshing.";
 		return;
 	}
@@ -135,6 +189,7 @@ void IzSQLUtilities::SQLTableProxyModel::filterData()
 		m_filterFutureWatcher->waitForFinished();
 	}
 
+	// set filtering state
 	m_isFiltering = true;
 	emit isFilteringChanged();
 
@@ -147,19 +202,21 @@ void IzSQLUtilities::SQLTableProxyModel::filterData()
 		return;
 	}
 
-	// cache filters
+	// cache filters and generate index set
 	m_cachedFilters = m_filters;
 	QSet<int> indexes;
 	for (int i{ 0 }; i < m_sourceModel->rowCount(); ++i) {
 		indexes.insert(i);
 	}
+
+	// launch concurrent filtering
 	QFuture<QSet<int>> filteredData = QtConcurrent::filteredReduced<QSet<int>>(indexes,
 																			   [this](int row) {
 																				   int hits{ 0 };
 																				   QHashIterator<int, QRegularExpression> it(m_cachedFilters);
 																				   while (it.hasNext()) {
 																					   it.next();
-																					   if (m_sourceModel->at(row).fieldValue(it.key()).toString().contains(it.value())) {
+																					   if (m_sourceModel->at(row).columnValue(it.key()).toString().contains(it.value())) {
 																						   hits++;
 																					   }
 																				   }
@@ -182,4 +239,9 @@ QVariant IzSQLUtilities::SQLTableProxyModel::data(const QModelIndex& index, int 
 		return m_selectionModel->isSelected(index);
 	}
 	return QSortFilterProxyModel::data(index, role);
+}
+
+QVariant IzSQLUtilities::SQLTableProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+	return m_sourceModel->headerData(sourceColumn(section), orientation, role);
 }

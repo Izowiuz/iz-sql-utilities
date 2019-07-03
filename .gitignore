@@ -24,3 +24,5 @@ src/DataModel/SQLModel.cpp.autosave
 CMakeLists.txt.user
 *.20
 *.8-pre1
+.vs
+*.9-pre1

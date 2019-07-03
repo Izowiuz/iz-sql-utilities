@@ -20,6 +20,8 @@ IzSQLUtilities::SQLModel::SQLModel(QObject* parent)
 	connect(m_dataLoader, &SQLDataLoader::workCompleted, this, &IzSQLUtilities::SQLModel::processData);
 	connect(m_dataLoader, &SQLDataLoader::loadedCount, this, &IzSQLUtilities::SQLModel::rowsLoaded);
 	connect(this, &IzSQLUtilities::SQLModel::abortRefresh, m_dataLoader, &SQLDataLoader::abortOperation, Qt::DirectConnection);
+
+	qRegisterMetaType<IzSQLUtilities::SQLModel*>("IzSQLUtilities::SQLModel*");
 }
 
 int IzSQLUtilities::SQLModel::rowCount(const QModelIndex& index) const

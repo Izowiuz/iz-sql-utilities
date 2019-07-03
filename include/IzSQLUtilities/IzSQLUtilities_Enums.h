@@ -22,7 +22,8 @@ namespace IzSQLUtilities
 
 	enum class DatabaseType : uint8_t {
 		MSSQL = 0,
-		SQLITE
+		SQLITE,
+		PSQL
 	};
 }   // namespace IzSQLUtilities
 

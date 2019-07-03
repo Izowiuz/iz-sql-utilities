@@ -1,20 +1,28 @@
 ﻿#include "LoadedSQLData.h"
 
-#include <QDebug>
-
-QHash<int, QString> IzSQLUtilities::LoadedSQLData::indexColumnMap() const
+QMap<int, QString> IzSQLUtilities::LoadedSQLData::indexColumnMap() const
 {
 	return m_indexColumnMap;
 }
 
-void IzSQLUtilities::LoadedSQLData::setIndexColumnMap(const QHash<int, QString>& indexColumnMap)
+void IzSQLUtilities::LoadedSQLData::setIndexColumnMap(const QMap<int, QString> &indexColumnMap)
 {
 	m_indexColumnMap = indexColumnMap;
 }
 
-void IzSQLUtilities::LoadedSQLData::addRow(std::unique_ptr<SQLDataContainer> row)
+void IzSQLUtilities::LoadedSQLData::addRow(std::unique_ptr<SQLRow> row)
 {
 	m_sqlData.push_back(std::move(row));
+}
+
+std::vector<QMetaType::Type>& IzSQLUtilities::LoadedSQLData::sqlDataTypes()
+{
+	return m_sqlDataTypes;
+}
+
+void IzSQLUtilities::LoadedSQLData::setSqlDataTypes(const std::vector<QMetaType::Type>& sqlDataTypes)
+{
+	m_sqlDataTypes = sqlDataTypes;
 }
 
 QHash<QString, int> IzSQLUtilities::LoadedSQLData::columnIndexMap() const
@@ -27,7 +35,7 @@ void IzSQLUtilities::LoadedSQLData::setColumnIndexMap(const QHash<QString, int>&
 	m_columnIndexMap = columnIndexMap;
 }
 
-std::vector<std::unique_ptr<IzSQLUtilities::SQLDataContainer>>& IzSQLUtilities::LoadedSQLData::sqlData()
+std::vector<std::unique_ptr<IzSQLUtilities::SQLRow>>& IzSQLUtilities::LoadedSQLData::sqlData()
 {
 	return m_sqlData;
 }

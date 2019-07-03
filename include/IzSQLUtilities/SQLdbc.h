@@ -52,7 +52,7 @@ namespace IzSQLUtilities
 						const QVariantMap& databaseParameters     = {},
 						QObject* parent                           = nullptr);
 
-		// dtor - closses connection on object destruction*/
+		// dtor - closses connection on object destruction
 		~SQLdbc();
 
 		// initializes connection required database parameters

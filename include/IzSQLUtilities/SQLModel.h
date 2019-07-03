@@ -103,7 +103,7 @@ namespace IzSQLUtilities
 		int dataSize() const;
 
 		// returns handler to the query builder
-		SQLQueryBuilder* getQueryBuilder() const;
+		Q_INVOKABLE SQLQueryBuilder* getQueryBuilder() const;
 
 		// function used to abort model refresh
 		void requestAbort();

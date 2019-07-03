@@ -38,6 +38,12 @@ namespace IzSQLUtilities
 
 		// QSortFilterProxyModel end
 
+		// QAbstractItemModel interface start
+
+		Q_INVOKABLE QVariant headerData(int section, Qt::Orientation orientation = Qt::Horizontal, int role = Qt::DisplayRole) const override;
+
+		// QAbstractItemModel interface end
+
 		// returns internal m_sourceModel
 		Q_INVOKABLE IzSQLUtilities::SQLTableModel* source() const;
 
@@ -66,6 +72,32 @@ namespace IzSQLUtilities
 		// m_excludedColumns getter / setter
 		QSet<int> excludedColumns() const;
 		void setExcludedColumns(const QSet<int>& excludedColumns);
+
+		// returns source row for given proxy row
+		// WARNING: proxyColumn set to 0!
+		Q_INVOKABLE int sourceRow(int proxyRow) const;
+
+		// returns source column for given proxy column
+		// WARNING: proxyRow set to 0!
+		Q_INVOKABLE int sourceColumn(int proxyColumn) const;
+
+		// returns proxy row for given source row
+		// WARNING: sourceColumn set to 0!
+		Q_INVOKABLE int proxyRow(int sourceRow) const;
+
+		// returns proxy column for given source column
+		// WARNING: sourceRow set to 0!
+		Q_INVOKABLE int proxyColumn(int sourceColumn) const;
+
+		// returns source model index
+		Q_INVOKABLE QModelIndex sourceIndex(int proxyRow, int proxyColumn) const;
+
+		// returns proxy model index
+		Q_INVOKABLE QModelIndex proxyIndex(int sourceRow, int sourceColumn) const;
+
+		// m_hiddenColumns getter / setter
+		QSet<int> hiddenColumns() const;
+		void setHiddenColumns(const QSet<int> &hiddenColumns);
 
 	protected:
 		// QSortFilterProxyModel start
@@ -112,7 +144,7 @@ namespace IzSQLUtilities
 		bool m_filtersApplied{ false };
 
 	signals:
-		// Q_PROPERTY changed signals
+		// Q_PROPERTY *Changed signals
 		void isFilteringChanged();
 	};
 

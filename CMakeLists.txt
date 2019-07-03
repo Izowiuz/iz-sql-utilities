@@ -14,6 +14,9 @@ endif()
 # Qt's modules
 find_package(Qt5 COMPONENTS Core Sql Qml Concurrent REQUIRED)
 
+# IzModels
+find_package(IzModels CONFIG REQUIRED)
+
 # if CMAKE_INSTALL_PREFIX is set to default value I override it
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	 # prefix path for windows platform
@@ -30,10 +33,12 @@ qt5_wrap_cpp(MOC_files
 	"include/IzSQLUtilities/SQLProxyModel.h"
 	"include/IzSQLUtilities/SQLdbc.h"
 	"include/IzSQLUtilities/SQLTableModel.h"
+	"include/IzSQLUtilities/SQLListModel.h"
 	"include/IzSQLUtilities/SQLQueryBuilder.h"
 	"include/IzSQLUtilities/SQLModel.h"
 	"include/IzSQLUtilities/SQLFunctions.h"
 	"include/IzSQLUtilities/SQLTableProxyModel.h"
+	"include/IzSQLUtilities/AbstractSQLModel.h"
 )
 
 # library definition
@@ -59,6 +64,10 @@ add_library(${PROJECT_NAME} SHARED
 	"private/SQLResponseEvent.cpp"
 	"private/LoadedSQLData.cpp"
 	"private/SQLTableProxyModel.cpp"
+	"private/AbstractSQLModel.cpp"
+	"private/SQLListModel.cpp"
+	"private/SQLRow.cpp"
+	"private/SQLConnector.cpp"
 	${MOC_files}
 )
 
@@ -74,7 +83,11 @@ set(PUBLIC_HEADERS
 	"include/IzSQLUtilities/IzSQLUtilities_Enums.h"
 	"include/IzSQLUtilities/IzSQLUtilities_Global.h"
 	"include/IzSQLUtilities/SQLdbc.h"
+	"include/IzSQLUtilities/SQLConnector.h"
 	"include/IzSQLUtilities/SQLTableProxyModel.h"
+	"include/IzSQLUtilities/AbstractSQLModel.h"
+	"include/IzSQLUtilities/SQLListModel.h"
+	"include/IzSQLUtilities/SQLRow.h"
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
 
@@ -96,8 +109,9 @@ target_compile_features(${PROJECT_NAME}
 # target links
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
-		Qt5::Core
+		IzModels::IzModels
 	PRIVATE
+		Qt5::Core
 		Qt5::Qml
 		Qt5::Sql
 		Qt5::Concurrent

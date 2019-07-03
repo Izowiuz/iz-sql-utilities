@@ -16,7 +16,7 @@ IzSQLUtilities::SQLProxyModel::SQLProxyModel(QObject* parent)
 	// additional connects for concurrent operations
 	connect(this, &IzSQLUtilities::SQLProxyModel::filterChanged, this, &IzSQLUtilities::SQLProxyModel::onFilterChangeRequested);
 
-	qRegisterMetaType<IzSQLUtilities::SQLProxyModel*>();
+	qRegisterMetaType<IzSQLUtilities::SQLProxyModel*>("IzSQLUtilities::SQLProxyModel*");
 }
 
 IzSQLUtilities::SQLModel* IzSQLUtilities::SQLProxyModel::sourceModel(bool isInitializing) const

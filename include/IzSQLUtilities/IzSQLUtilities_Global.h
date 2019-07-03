@@ -17,12 +17,15 @@
 	SQLdbc_appUserID [int]			- application user ID
 	SQLdbc_appName [string]			- application name
 
-	SQL data loader:
-	SQLDataLoader_raportingFrequency [int]		- frequency [in loaded items] in which loader will report loaded items
+	Klasy do wyrzucenia:
+		SQLData
+		SQLDataContainer
+		SQLModel
+		SQLProxyModel
 
-	TODO: przeczytać czy na pewno w widokach trzeba zawsze emitować dataChanged jeżeli zmieniają się jakieś QProperty
-	TODO:  pozbyć się SQLQueryBuildera i klas spokrewnionych
-
+	Klasy do modernizacji / wyrzucenia:
+		SQLQueryBuilder i wszystkie klasy związane
+		SQLErrorInterpreterA2 i wszystkie klasy związane
 */
 
 #include <QtCore/qglobal.h>
