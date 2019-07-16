@@ -9,6 +9,7 @@
 
 #include "IzModels/AbstractItemModel.h"
 
+#include "IzSQLUtilities/IzSQLUtilities_Enums.h"
 #include "IzSQLUtilities/IzSQLUtilities_Global.h"
 #include "SQLRow.h"
 
@@ -35,6 +36,12 @@ namespace IzSQLUtilities
 
 		// true if query is valid
 		Q_PROPERTY(bool queryIsValid READ queryIsValid NOTIFY queryIsValidChanged)
+
+		// current type of database connection
+		Q_PROPERTY(IzSQLUtilities::DatabaseType databaseType READ databaseType WRITE setDatabaseType NOTIFY databaseTypeChanged FINAL)
+
+		// current connection parameters - empty parameters = parameter are read from dynamic properties of qApp
+		Q_PROPERTY(QVariantMap connectionParameters READ connectionParameters WRITE setConnectionParameters NOTIFY connectionParametersChanged FINAL)
 
 	public:
 		// types of data refresh
@@ -175,6 +182,14 @@ namespace IzSQLUtilities
 
 		// AbstractItemModel interface end
 
+		// m_connectionParameters setter / getter
+		QVariantMap connectionParameters() const;
+		void setConnectionParameters(const QVariantMap& connectionParameters);
+
+		// m_databaseType setter / getter
+		IzSQLUtilities::DatabaseType databaseType() const;
+		void setDatabaseType(const IzSQLUtilities::DatabaseType& databaseType);
+
 	protected:
 		// internal data getters
 		std::vector<std::unique_ptr<SQLRow>>& internalData();
@@ -238,14 +253,22 @@ namespace IzSQLUtilities
 		// true if query is valid
 		bool m_queryIsValid{ false };
 
-		// true if query is new
+		// true if query is new, not yet executed one
 		bool m_newQuery{ true };
+
+		// sql database type
+		IzSQLUtilities::DatabaseType m_databaseType{ IzSQLUtilities::DatabaseType::MSSQL };
+
+		// sql connection parameters
+		QVariantMap m_connectionParameters;
 
 	signals:
 		// Q_PROPERTY changed signals
 		void sqlQueryChanged();
 		void sqlQueryParametersChanged();
 		void queryIsValidChanged();
+		void databaseTypeChanged();
+		void connectionParametersChanged();
 
 		// emited when SQL query started
 		void sqlQueryStarted();

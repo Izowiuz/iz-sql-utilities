@@ -3,6 +3,7 @@
 
 #include <type_traits>
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
 #include <QSqlDatabase>
@@ -16,84 +17,66 @@
 
 namespace IzSQLUtilities
 {
-	template <IzSQLUtilities::DatabaseType DBType, typename = std::enable_if_t<std::is_same<decltype(DBType), IzSQLUtilities::DatabaseType>::value>>
 	class SqlConnector
 	{
-		friend class ConnectionPool;
-
 	public:
-		// connection parameters
-		template <IzSQLUtilities::DatabaseType U>
-		struct ConnectionParameters;
-
-		// ctors
-		template <IzSQLUtilities::DatabaseType U>
-		SqlConnector() = delete;
-
-		// disallow copy
-		template <IzSQLUtilities::DatabaseType U>
-		SqlConnector(SqlConnector& other) = delete;
-
-		template <IzSQLUtilities::DatabaseType U>
-		SqlConnector(const SqlConnector& other) = delete;
-
-		// disallow move
-		template <IzSQLUtilities::DatabaseType U>
-		SqlConnector(SqlConnector&& other) = delete;
-
-		explicit SqlConnector(const ConnectionParameters<DBType>& connectionParameters = ConnectionParameters<DBType>());
+		explicit SqlConnector(DatabaseType databaseType, const QVariantMap& connectionParameters = {})
+			: m_databaseType(databaseType)
+		{
+			switch (m_databaseType) {
+			case DatabaseType::MSSQL:
+				initializeMSSQLDB(connectionParameters);
+				break;
+			case DatabaseType::PSQL:
+				initializePSQLDB(connectionParameters);
+				break;
+			case DatabaseType::SQLITE:
+				initializeSQLITEDB(connectionParameters);
+				break;
+			}
+		}
 
 		// dtor - closses non-pooled connection on object destruction
 		~SqlConnector()
 		{
-			if (!m_isPooled) {
-				closeConnection();
-			}
+			closeConnection();
 		}
+
+		SqlConnector(const SqlConnector& other) = delete;
+		SqlConnector(SqlConnector&& other)      = delete;
 
 		// returns created connection type
 		IzSQLUtilities::DatabaseType connectionType() const
 		{
-			return m_connectionType;
+			return m_databaseType;
 		}
 
 		// returns created database connection
-		QSqlDatabase getDatabase() const
+		QSqlDatabase getConnection() const
 		{
-			return QSqlDatabase::database(m_connectionName, false);
+			return m_database;
 		}
 
 		// returns last error generated for this connection
-		const QSqlError getLastError() const
+		QSqlError lastError() const
 		{
-			return QSqlDatabase::database(m_connectionName, false).lastError();
+			return m_database.lastError();
 		}
 
 		// returns generated connection name
-		const QString getConnectionName() const
+		QString getConnectionName() const
 		{
 			return m_connectionName;
-		}
-
-		// m_isPooled getter
-		bool isPooled() const
-		{
-			return m_isPooled;
 		}
 
 		// closes generated connection
 		void closeConnection()
 		{
-			{
-				auto db = getDatabase();
-				if (db.isOpen()) {
-					db.close();
-				} else {
-					qWarning() << "Attempting to close connection:"
-							   << m_connectionName
-							   << "but it is not opened.";
-				}
+			if (m_database.isOpen()) {
+				m_database.close();
 			}
+
+			m_database = QSqlDatabase();
 			QSqlDatabase::removeDatabase(m_connectionName);
 		}
 
@@ -101,161 +84,96 @@ namespace IzSQLUtilities
 		// current connection name
 		QString m_connectionName;
 
-		// current connection type
-		IzSQLUtilities::DatabaseType m_connectionType;
+		// current database type
+		DatabaseType m_databaseType;
 
-		// true if connection is pooled
-		// if it is - it will not be closed on SqlConnector destruction
-		bool m_isPooled{ false };
+		// current connection
+		QSqlDatabase m_database;
 
-		// initializes this Connector as being pooled
-		void makePooled()
+		void initializeMSSQLDB(const QVariantMap& connectionParameters)
 		{
-			m_isPooled = true;
-		}
-	};
+			m_connectionName = QStringLiteral("MSSQL-") + QUuid::createUuid().toString();
+			m_database       = QSqlDatabase::addDatabase(QStringLiteral("QODBC"), m_connectionName);
 
-	template <>
-	template <>
-	struct SqlConnector<IzSQLUtilities::DatabaseType::SQLITE>::ConnectionParameters<IzSQLUtilities::DatabaseType::SQLITE> {
-		// database name
-		QString database;
-
-		// database path
-		QUrl path;
-	};
-
-	template <>
-	template <>
-	struct SqlConnector<IzSQLUtilities::DatabaseType::PSQL>::ConnectionParameters<IzSQLUtilities::DatabaseType::PSQL> {
-		// target host
-		QString host;
-
-		// name of the database
-		QString database;
-
-		// database user
-		QString user;
-
-		// user's password
-		QString password;
-
-		// database listening port
-		int port{ -1 };
-	};
-
-	template <>
-	template <>
-	struct SqlConnector<IzSQLUtilities::DatabaseType::MSSQL>::ConnectionParameters<IzSQLUtilities::DatabaseType::MSSQL> {
-		// target host
-		QString host;
-
-		// name of the database
-		QString database;
-
-		// database user
-		QString user;
-
-		// user's password
-		QString password;
-
-		// driver to use
-		QString driver;
-	};
-
-	template <>
-	inline SqlConnector<IzSQLUtilities::DatabaseType::SQLITE>::SqlConnector(const ConnectionParameters<IzSQLUtilities::DatabaseType::SQLITE>& connectionParameters)
-		: m_connectionName(QUuid::createUuid().toString())
-	{
-		QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), m_connectionName);
-		db.setDatabaseName(connectionParameters.path.toString() + QDir::separator() + connectionParameters.database);
-		if (!db.open()) {
-			qWarning() << "Could not open connection:" << m_connectionName;
-			qWarning() << db.lastError();
-		}
-	}
-
-	template <>
-	inline SqlConnector<IzSQLUtilities::DatabaseType::PSQL>::SqlConnector(const ConnectionParameters<IzSQLUtilities::DatabaseType::PSQL>& connectionParameters)
-		: m_connectionName(QUuid::createUuid().toString())
-	{
-		QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QPSQL"), m_connectionName);
-		db.setHostName(connectionParameters.host);
-		db.setDatabaseName(connectionParameters.database);
-		db.setUserName(connectionParameters.user);
-		db.setPassword(connectionParameters.password);
-		db.setPort(connectionParameters.port);
-		db.setConnectOptions(QStringLiteral("connect_timeout=60"));
-		if (!db.open()) {
-			qWarning() << "Could not open connection:" << m_connectionName;
-			qWarning() << db.lastError();
-		}
-	}
-
-	template <>
-	inline SqlConnector<IzSQLUtilities::DatabaseType::MSSQL>::SqlConnector(const ConnectionParameters<IzSQLUtilities::DatabaseType::MSSQL>& connectionParameters)
-		: m_connectionName(QUuid::createUuid().toString())
-	{
-		QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QODBC"), m_connectionName);
-		db.setDatabaseName(QStringLiteral("Driver=%1;Server=%2;Database=%3;Uid=%4;Pwd=%5").arg(connectionParameters.driver,
-																							   connectionParameters.host,
-																							   connectionParameters.database,
-																							   connectionParameters.user,
-																							   connectionParameters.password));
-		if (!db.open()) {
-			qWarning() << "Could not open connection:" << m_connectionName;
-			qWarning() << db.lastError();
-		}
-	}
-
-	class IZSQLUTILITIESSHARED_EXPORT ConnectionPool
-	{
-		// disallow copy
-		Q_DISABLE_COPY(ConnectionPool)
-	public:
-		// ctor
-		ConnectionPool() = default;
-
-		// disallow move
-		ConnectionPool(ConnectionPool&& other) = delete;
-
-		// dtor
-		virtual ~ConnectionPool() final = default;
-
-		// instance getter
-		static ConnectionPool* instance();
-
-		// connection pool getters
-		QThreadStorage<QSqlDatabase>& pool()
-		{
-			return m_connectionPool;
-		}
-
-		const QThreadStorage<QSqlDatabase>& connectionPool() const
-		{
-			return m_connectionPool;
-		}
-
-		template <IzSQLUtilities::DatabaseType DBType, typename... Args>
-		QSqlDatabase database(Args&&... connectionParameters)
-		{
-			if (ConnectionPool::instance()->pool().hasLocalData()) {
-				return ConnectionPool::instance()->pool().localData();
+			if (connectionParameters.empty()) {
+				// clang-format off
+				m_database.setDatabaseName(QStringLiteral("Driver=%1;Server=%2;Database=%3;Uid=%4;Pwd=%5;app=%6").arg(qApp->property("MSSQL_driver").toString(),
+																													  qApp->property("MSSQL_host").toString(),
+																													  qApp->property("MSSQL_database").toString(),
+																													  qApp->property("MSSQL_user").toString(),
+																													  qApp->property("MSSQL_password").toString(),
+																													  qApp->property("MSSQL_application").toString()
+																													  + QStringLiteral("@")
+																													  + qApp->property("MSSQL_userID").toString()));
+				// clang-format on
+			} else {
+				// clang-format off
+				m_database.setDatabaseName(QStringLiteral("Driver=%1;Server=%2;Database=%3;Uid=%4;Pwd=%5").arg(connectionParameters["driver"].toString(),
+																											   connectionParameters["host"].toString(),
+																											   connectionParameters["database"].toString(),
+																											   connectionParameters["user"].toString(),
+																											   connectionParameters["password"].toString()));
+				// clang-format on
 			}
-			IzSQLUtilities::SqlConnector<DBType> c(std::forward<Args>(connectionParameters)...);
-			c.makePooled();
-			ConnectionPool::instance()->pool().setLocalData(c.getDatabase());
-			return ConnectionPool::instance()->pool().localData();
+
+			if (!m_database.open()) {
+				qWarning() << "Could not open connection:" << m_connectionName;
+				qWarning() << m_database.lastError();
+			}
 		}
 
-	private:
-		// thread local connection pool
-		QThreadStorage<QSqlDatabase> m_connectionPool;
-	};
+		void initializePSQLDB(const QVariantMap& connectionParameters)
+		{
+			m_connectionName = QStringLiteral("PSQL-") + QUuid::createUuid().toString();
+			m_database       = QSqlDatabase::addDatabase(QStringLiteral("QPSQL"), m_connectionName);
 
-	using MSSQLParameters  = IzSQLUtilities::SqlConnector<IzSQLUtilities::DatabaseType::MSSQL>::ConnectionParameters<IzSQLUtilities::DatabaseType::MSSQL>;
-	using PSQLParameters   = IzSQLUtilities::SqlConnector<IzSQLUtilities::DatabaseType::PSQL>::ConnectionParameters<IzSQLUtilities::DatabaseType::PSQL>;
-	using SQLITEParameters = IzSQLUtilities::SqlConnector<IzSQLUtilities::DatabaseType::SQLITE>::ConnectionParameters<IzSQLUtilities::DatabaseType::SQLITE>;
+			if (connectionParameters.empty()) {
+				m_database.setHostName(qApp->property("QPSQL_host").toString());
+				m_database.setDatabaseName(qApp->property("QPSQL_database").toString());
+				m_database.setUserName(qApp->property("QPSQL_user").toString());
+				m_database.setPassword(qApp->property("QPSQL_password").toString());
+				m_database.setPort(qApp->property("QPSQL_port").toInt());
+				m_database.setConnectOptions(QStringLiteral("connect_timeout=60"));
+			} else {
+				m_database.setHostName(connectionParameters["host"].toString());
+				m_database.setDatabaseName(connectionParameters["database"].toString());
+				m_database.setUserName(connectionParameters["user"].toString());
+				m_database.setPassword(connectionParameters["password"].toString());
+				m_database.setPort(connectionParameters["port"].toInt());
+				m_database.setConnectOptions(QStringLiteral("connect_timeout=60"));
+			}
+
+			if (!m_database.open()) {
+				qWarning() << "Could not open connection:" << m_connectionName;
+				qWarning() << m_database.lastError();
+			}
+		}
+
+		void initializeSQLITEDB(const QVariantMap& connectionParameters)
+		{
+			m_connectionName = QStringLiteral("SQLITE-") + QUuid::createUuid().toString();
+			m_database       = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), m_connectionName);
+
+			if (connectionParameters.empty()) {
+				// clang-format off
+				m_database.setDatabaseName(qApp->property("QSQLITE_path").toString()
+										   + QDir::separator()
+										   + qApp->property("QSQLITE_database").toString());
+				// clang-format on
+			} else {
+				// clang-format off
+				m_database.setDatabaseName(connectionParameters["path"].toString()
+								   + QDir::separator()
+								   + connectionParameters["database"].toString());
+				// clang-format on
+			}
+
+			if (!m_database.open()) {
+				qWarning() << "Could not open connection:" << m_connectionName;
+				qWarning() << m_database.lastError();
+			}
+		}
+	};
 }   // namespace IzSQLUtilities
 
 #endif   // IZSQLUTILITIES_SQLCONNECTOR_H

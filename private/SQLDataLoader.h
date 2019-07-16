@@ -1,8 +1,7 @@
 ﻿#ifndef IZSQLUTILITIES_SQLDATALOADER_H
 #define IZSQLUTILITIES_SQLDATALOADER_H
 
-//TODO: poprawić restartOperation()
-//TODO: przywrócić funkcjonalność: m_countRaportingRequested = reportProgress
+//TODO: out
 
 #include <future>
 

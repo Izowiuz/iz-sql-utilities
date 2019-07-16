@@ -4,7 +4,7 @@
 #include <QSqlRecord>
 #include <QtConcurrent>
 
-#include "IzSQLUtilities/SQLdbc.h"
+#include "IzSQLUtilities/SQLConnector.h"
 
 #include "LoadedSQLData.h"
 
@@ -256,8 +256,8 @@ void IzSQLUtilities::AbstractSQLModel::parseSQLData()
 IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::fullDataRefresh(const QString& sqlQuery, const QVariantMap& sqlParameters)
 {
 	// database connect
-	SQLdbc db(QStringLiteral("model-refresh"));
-	if (!db.initializeConnection()) {
+	SqlConnector db(m_databaseType, m_connectionParameters);
+	if (!db.getConnection().isOpen()) {
 		return { AbstractSQLModel::DataRefreshResult::DatabaseError, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
 	}
 
@@ -331,6 +331,32 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::p
 {
 	qDebug() << "implement me :[";
 	return { AbstractSQLModel::DataRefreshResult::Refreshed, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
+}
+
+IzSQLUtilities::DatabaseType IzSQLUtilities::AbstractSQLModel::databaseType() const
+{
+	return m_databaseType;
+}
+
+void IzSQLUtilities::AbstractSQLModel::setDatabaseType(const IzSQLUtilities::DatabaseType& databaseType)
+{
+	if (m_databaseType != databaseType) {
+		m_databaseType = databaseType;
+		emit databaseTypeChanged();
+	}
+}
+
+QVariantMap IzSQLUtilities::AbstractSQLModel::connectionParameters() const
+{
+	return m_connectionParameters;
+}
+
+void IzSQLUtilities::AbstractSQLModel::setConnectionParameters(const QVariantMap& connectionParameters)
+{
+	if (m_connectionParameters != connectionParameters) {
+		m_connectionParameters = connectionParameters;
+		emit connectionParametersChanged();
+	}
 }
 
 QVariantMap IzSQLUtilities::AbstractSQLModel::sqlQueryParameters() const

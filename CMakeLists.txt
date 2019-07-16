@@ -31,7 +31,6 @@ qt5_wrap_cpp(MOC_files
 	"private/SQLErrorMessage.h"
 	"include/IzSQLUtilities/SQLErrorInterpreterA2.h"
 	"include/IzSQLUtilities/SQLProxyModel.h"
-	"include/IzSQLUtilities/SQLdbc.h"
 	"include/IzSQLUtilities/SQLTableModel.h"
 	"include/IzSQLUtilities/SQLListModel.h"
 	"include/IzSQLUtilities/SQLQueryBuilder.h"
@@ -55,7 +54,6 @@ add_library(${PROJECT_NAME} SHARED
 	"private/SQLDataContainer.cpp"
 	"private/SQLData.cpp"
 	"private/SQLProxyModel.cpp"
-	"private/SQLdbc.cpp"
 	"private/SQLWhereElement.cpp"
 	"private/SQLTopElement.cpp"
 	"private/SQLTableModel.cpp"
@@ -67,7 +65,6 @@ add_library(${PROJECT_NAME} SHARED
 	"private/AbstractSQLModel.cpp"
 	"private/SQLListModel.cpp"
 	"private/SQLRow.cpp"
-	"private/SQLConnector.cpp"
 	${MOC_files}
 )
 
@@ -82,7 +79,6 @@ set(PUBLIC_HEADERS
 	"include/IzSQLUtilities/SQLTableModel.h"
 	"include/IzSQLUtilities/IzSQLUtilities_Enums.h"
 	"include/IzSQLUtilities/IzSQLUtilities_Global.h"
-	"include/IzSQLUtilities/SQLdbc.h"
 	"include/IzSQLUtilities/SQLConnector.h"
 	"include/IzSQLUtilities/SQLTableProxyModel.h"
 	"include/IzSQLUtilities/AbstractSQLModel.h"

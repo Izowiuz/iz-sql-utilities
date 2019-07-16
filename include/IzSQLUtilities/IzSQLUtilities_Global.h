@@ -6,26 +6,7 @@
 
 	A set of tools for SQL database oriented Qt programs
 
-	Global setttings are stored as dynamic properties inside QCoreApplication class.
-
-	SQL database connection:
-	SQLdbc_server [string]			- server
-	SQLdbc_database [string]		- name
-	SQLdbc_dbUserLogin [string]		- user login
-	SQLdbc_dbUserPassword [string]	- user password
-	SQLdbc_appUserLogin [string]	- application user, used to identify db connection
-	SQLdbc_appUserID [int]			- application user ID
-	SQLdbc_appName [string]			- application name
-
-	Klasy do wyrzucenia:
-		SQLData
-		SQLDataContainer
-		SQLModel
-		SQLProxyModel
-
-	Klasy do modernizacji / wyrzucenia:
-		SQLQueryBuilder i wszystkie klasy związane
-		SQLErrorInterpreterA2 i wszystkie klasy związane
+	Some global setttings can be stored as dynamic properties inside QCoreApplication class.
 */
 
 #include <QtCore/qglobal.h>
