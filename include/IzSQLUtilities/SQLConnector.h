@@ -1,15 +1,11 @@
 ﻿#ifndef IZSQLUTILITIES_SQLCONNECTOR_H
 #define IZSQLUTILITIES_SQLCONNECTOR_H
 
-#include <type_traits>
-
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
 #include <QSqlDatabase>
 #include <QSqlError>
-#include <QThreadStorage>
-#include <QUrl>
 #include <QUuid>
 
 #include "IzSQLUtilities/IzSQLUtilities_Enums.h"
