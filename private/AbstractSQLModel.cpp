@@ -277,6 +277,7 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::f
 	// query exec
 	emit sqlQueryStarted();
 	if (!query.exec()) {
+		qWarning() << query.lastError();
 		return { AbstractSQLModel::DataRefreshResult::QueryError, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
 	}
 	emit sqlQueryReturned();
