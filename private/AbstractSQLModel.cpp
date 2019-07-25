@@ -189,7 +189,7 @@ void IzSQLUtilities::AbstractSQLModel::setColumnNameColumnAliasMap(const QVarian
 QMetaType::Type IzSQLUtilities::AbstractSQLModel::columnDataType(int index) const
 {
 	if (index >= 0 && static_cast<std::size_t>(index) < m_sqlDataTypes.size()) {
-		return m_sqlDataTypes[index];
+		return m_sqlDataTypes[static_cast<std::size_t>(index)];
 	}
 
 	return QMetaType::UnknownType;
@@ -217,6 +217,7 @@ const QHash<QString, int>& IzSQLUtilities::AbstractSQLModel::columnIndexMap() co
 
 void IzSQLUtilities::AbstractSQLModel::additionalDataParsing(bool dataRefreshSucceeded)
 {
+	Q_UNUSED(dataRefreshSucceeded)
 }
 
 std::vector<std::unique_ptr<IzSQLUtilities::SQLRow>>& IzSQLUtilities::AbstractSQLModel::internalData()
@@ -295,7 +296,7 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::f
 	QMap<int, QString> indexColumnMap;
 
 	std::vector<QMetaType::Type> dataTypes;
-	dataTypes.reserve(columnsCount);
+	dataTypes.reserve(static_cast<std::size_t>(columnsCount));
 
 	for (int i = 0; i < columnsCount; i++) {
 		dataTypes.emplace_back(static_cast<QMetaType::Type>(query.record().value(i).type()));
@@ -330,6 +331,10 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::f
 
 IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::partialDataRefresh(const QString& sqlQuery, const QVariantMap& sqlParameters, const QList<int>& rows)
 {
+	Q_UNUSED(sqlQuery)
+	Q_UNUSED(sqlParameters)
+	Q_UNUSED(rows)
+
 	qDebug() << "implement me :[";
 	return { AbstractSQLModel::DataRefreshResult::Refreshed, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
 }
@@ -569,5 +574,5 @@ int IzSQLUtilities::AbstractSQLModel::findRow(const QVariantMap& columnValues) c
 		return hits == columnValues.size();
 	});
 
-	return pos == m_data.end() ? -1 : std::distance(m_data.begin(), pos);
+	return pos == m_data.end() ? -1 : static_cast<int>(std::distance(m_data.begin(), pos));
 }
