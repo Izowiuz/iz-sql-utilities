@@ -58,7 +58,7 @@ QModelIndex IzSQLUtilities::AbstractSQLModel::parent(const QModelIndex& index) c
 int IzSQLUtilities::AbstractSQLModel::rowCount(const QModelIndex& parent) const
 {
 	Q_UNUSED(parent)
-	return m_data.size();
+	return static_cast<int>(m_data.size());
 }
 
 int IzSQLUtilities::AbstractSQLModel::columnCount(const QModelIndex& parent) const

@@ -142,21 +142,21 @@ namespace IzSQLUtilities
 		auto begin()
 		{
 			return m_data.begin();
-		};
+		}
 		auto end()
 		{
 			return m_data.end();
-		};
+		}
 
 		// returns const iterators for m_data vector
-		const auto cbegin() const
+		auto cbegin() const
 		{
 			return m_data.cbegin();
-		};
-		const auto cend() const
+		}
+		auto cend() const
 		{
 			return m_data.cend();
-		};
+		}
 
 		// WARNING: absolutely no boundary checks
 		SQLRow& at(int index)
