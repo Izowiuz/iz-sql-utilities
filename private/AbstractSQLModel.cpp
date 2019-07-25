@@ -215,8 +215,7 @@ const QHash<QString, int>& IzSQLUtilities::AbstractSQLModel::columnIndexMap() co
 	return m_columnIndexMap;
 }
 
-void IzSQLUtilities::AbstractSQLModel::additionalDataParsing(bool dataRefreshSucceeded)
-{
+void IzSQLUtilities::AbstractSQLModel::additionalDataParsing(bool dataRefreshSucceeded){
 	Q_UNUSED(dataRefreshSucceeded)
 }
 
@@ -339,6 +338,24 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::p
 	return { AbstractSQLModel::DataRefreshResult::Refreshed, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
 }
 
+QString IzSQLUtilities::AbstractSQLModel::databaseName() const
+{
+	return m_databaseName;
+}
+
+void IzSQLUtilities::AbstractSQLModel::setDatabaseName(const QString& databaseName)
+{
+	if (databaseName == QStringLiteral("MSSQL")) {
+		setDatabaseType(IzSQLUtilities::DatabaseType::MSSQL);
+	} else if (databaseName == QStringLiteral("PSQL")) {
+		setDatabaseType(IzSQLUtilities::DatabaseType::PSQL);
+	} else if (databaseName == QStringLiteral("SQLITE")) {
+		setDatabaseType(IzSQLUtilities::DatabaseType::SQLITE);
+	} else {
+		qWarning() << "Got invalid database name:" << databaseName;
+	}
+}
+
 IzSQLUtilities::DatabaseType IzSQLUtilities::AbstractSQLModel::databaseType() const
 {
 	return m_databaseType;
@@ -348,6 +365,19 @@ void IzSQLUtilities::AbstractSQLModel::setDatabaseType(const IzSQLUtilities::Dat
 {
 	if (m_databaseType != databaseType) {
 		m_databaseType = databaseType;
+
+		switch (m_databaseType) {
+		case DatabaseType::MSSQL:
+			m_databaseName = QStringLiteral("MSSQL");
+			break;
+		case DatabaseType::SQLITE:
+			m_databaseName = QStringLiteral("SQLITE");
+			break;
+		case DatabaseType::PSQL:
+			m_databaseName = QStringLiteral("PSQL");
+			break;
+		}
+
 		emit databaseTypeChanged();
 	}
 }
@@ -424,12 +454,12 @@ void IzSQLUtilities::AbstractSQLModel::refreshData(const QString& sqlQuery, cons
 	emit dataRefreshStarted();
 
 	if (rows.isEmpty()) {
-		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]()->LoadedData {
+		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]() -> LoadedData {
 			return this->fullDataRefresh(normalizeSqlQuery(query, parameters), parameters);
 		});
 		m_refreshFutureWatcher->setFuture(refreshFuture);
 	} else {
-		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters, rows = rows]()->LoadedData {
+		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters, rows = rows]() -> LoadedData {
 			return this->partialDataRefresh(normalizeSqlQuery(query, parameters), parameters, rows);
 		});
 		m_refreshFutureWatcher->setFuture(refreshFuture);
@@ -450,7 +480,7 @@ void IzSQLUtilities::AbstractSQLModel::refreshData()
 
 	emit dataRefreshStarted();
 
-	QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]()->LoadedData {
+	QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]() -> LoadedData {
 		return this->fullDataRefresh(normalizeSqlQuery(query, parameters), parameters);
 	});
 	m_refreshFutureWatcher->setFuture(refreshFuture);

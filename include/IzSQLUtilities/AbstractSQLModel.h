@@ -38,7 +38,13 @@ namespace IzSQLUtilities
 		Q_PROPERTY(bool queryIsValid READ queryIsValid NOTIFY queryIsValidChanged)
 
 		// current type of database connection
+		// this also sets databaseName
 		Q_PROPERTY(IzSQLUtilities::DatabaseType databaseType READ databaseType WRITE setDatabaseType NOTIFY databaseTypeChanged FINAL)
+
+		// current database type - in string form
+		// this also sets databaseType
+		// WARNING: QML hack - ENUMS are still fubared
+		Q_PROPERTY(QString databaseName READ databaseName WRITE setDatabaseName NOTIFY databaseTypeChanged FINAL)
 
 		// current connection parameters - empty parameters = parameter are read from dynamic properties of qApp
 		Q_PROPERTY(QVariantMap connectionParameters READ connectionParameters WRITE setConnectionParameters NOTIFY connectionParametersChanged FINAL)
@@ -161,7 +167,7 @@ namespace IzSQLUtilities
 		// WARNING: absolutely no boundary checks
 		SQLRow& at(int index)
 		{
-			return *m_data[index];
+			return *m_data[static_cast<std::size_t>(index)];
 		}
 
 		// m_queryIsValid getter
@@ -189,6 +195,10 @@ namespace IzSQLUtilities
 		// m_databaseType setter / getter
 		IzSQLUtilities::DatabaseType databaseType() const;
 		void setDatabaseType(const IzSQLUtilities::DatabaseType& databaseType);
+
+		// m_databaseName setter / getter
+		QString databaseName() const;
+		void setDatabaseName(const QString &databaseName);
 
 	protected:
 		// internal data getters
@@ -258,6 +268,10 @@ namespace IzSQLUtilities
 
 		// sql database type
 		IzSQLUtilities::DatabaseType m_databaseType{ IzSQLUtilities::DatabaseType::MSSQL };
+
+		// sql database name
+		// for use in QML
+		QString m_databaseName{ QStringLiteral("MSSQL") };
 
 		// sql connection parameters
 		QVariantMap m_connectionParameters;
