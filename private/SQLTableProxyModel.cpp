@@ -5,7 +5,6 @@
 #include <QThread>
 #include <QtConcurrent>
 
-#include "IzSQLUtilities/SQLDataContainer.h"
 #include "IzSQLUtilities/SQLTableModel.h"
 
 IzSQLUtilities::SQLTableProxyModel::SQLTableProxyModel(QObject* parent)

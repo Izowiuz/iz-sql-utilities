@@ -5,16 +5,6 @@
 
 namespace IzSQLUtilities
 {
-	enum class ModelLoadStatus {
-		NOT_INITIALIZED,
-		LOADING,
-		LOADED,
-		ABORTED,
-		QUERY_EMPTY,
-		QUERY_ERROR,
-		SQL_ERROR
-	};
-
 	enum class DatabaseType : uint8_t {
 		MSSQL = 0,
 		SQLITE,
