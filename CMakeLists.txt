@@ -28,8 +28,6 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 # Qt's moc files
 qt5_wrap_cpp(MOC_files
 	"private/SQLDataLoader.h"
-	"private/SQLErrorMessage.h"
-	"include/IzSQLUtilities/SQLErrorInterpreterA2.h"
 	"include/IzSQLUtilities/SQLProxyModel.h"
 	"include/IzSQLUtilities/SQLTableModel.h"
 	"include/IzSQLUtilities/SQLListModel.h"
@@ -47,8 +45,6 @@ add_library(${PROJECT_NAME} SHARED
 	"private/SQLModel.cpp"
 	"private/SQLJoinElement.cpp"
 	"private/SQLFunctions.cpp"
-	"private/SQLErrorMessage.cpp"
-	"private/SQLErrorInterpreterA2.cpp"
 	"private/SQLElement.cpp"
 	"private/SQLDataLoader.cpp"
 	"private/SQLDataContainer.cpp"
@@ -70,7 +66,7 @@ add_library(${PROJECT_NAME} SHARED
 
 # public headers
 set(PUBLIC_HEADERS
-	"include/IzSQLUtilities/SQLErrorInterpreterA2.h"
+	"include/IzSQLUtilities/SQLErrorEvent.h"
 	"include/IzSQLUtilities/SQLDataContainer.h"
 	"include/IzSQLUtilities/SQLFunctions.h"
 	"include/IzSQLUtilities/SQLModel.h"

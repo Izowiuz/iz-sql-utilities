@@ -8,7 +8,7 @@
 
 #include "IzSQLUtilities/IzSQLUtilities_Enums.h"
 #include "IzSQLUtilities/SQLConnector.h"
-#include "IzSQLUtilities/SQLErrorInterpreterA2.h"
+#include "IzSQLUtilities/SQLErrorEvent.h"
 
 IzSQLUtilities::SQLFunctions::SQLFunctions(QObject* parent)
 	: QObject(parent)
@@ -52,7 +52,7 @@ bool IzSQLUtilities::SQLFunctions::callProcedure(const QString& functionName, co
 			return true;
 		}
 
-		SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, query.lastError());
+		SQLErrorEvent::postSQLError(query.lastError());
 		if (emitStatusSignals) {
 			emit operationEnded(functionName);
 		}
@@ -64,7 +64,7 @@ bool IzSQLUtilities::SQLFunctions::callProcedure(const QString& functionName, co
 		emit operationEnded(functionName);
 	}
 
-	SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, db.lastError());
+	SQLErrorEvent::postSQLError(db.lastError());
 	return false;
 }
 
@@ -104,7 +104,7 @@ bool IzSQLUtilities::SQLFunctions::callProcedure(const char* functionName, const
 			return true;
 		}
 
-		SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, query.lastError());
+		SQLErrorEvent::postSQLError(query.lastError());
 		if (emitStatusSignals) {
 			emit operationEnded(functionName);
 		}
@@ -116,7 +116,7 @@ bool IzSQLUtilities::SQLFunctions::callProcedure(const char* functionName, const
 		emit operationEnded(functionName);
 	}
 
-	SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, db.lastError());
+	SQLErrorEvent::postSQLError(db.lastError());
 	return false;
 }
 
@@ -143,11 +143,11 @@ bool IzSQLUtilities::SQLFunctions::callProcedureStatic(const char* functionName,
 			return true;
 		}
 
-		SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, query.lastError());
+		SQLErrorEvent::postSQLError(query.lastError());
 		return false;
 	}
 
-	SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, db.lastError());
+	SQLErrorEvent::postSQLError(db.lastError());
 	return false;
 }
 
@@ -159,20 +159,20 @@ bool IzSQLUtilities::SQLFunctions::objectNameAvailable(const QString& table, con
 
 	SqlConnector db(m_databaseType, m_connectionParameters);
 	if (db.getConnection().isOpen()) {
-		QSqlQuery checkName(db.getConnection());
-		checkName.prepare(QStringLiteral("SELECT COUNT(id) FROM ") + tTable + QStringLiteral(" WHERE ") + tColumn + QStringLiteral(" = '") + tObject + QStringLiteral("'"));
+		QSqlQuery query(db.getConnection());
+		query.prepare(QStringLiteral("SELECT COUNT(id) FROM ") + tTable + QStringLiteral(" WHERE ") + tColumn + QStringLiteral(" = '") + tObject + QStringLiteral("'"));
 
-		if (checkName.exec()) {
-			checkName.first();
-			return (checkName.value(0).toInt() == 0);
+		if (query.exec()) {
+			query.first();
+			return (query.value(0).toInt() == 0);
 		}
 
-		qCritical() << checkName.lastError().text();
-		SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, checkName.lastError());
+		qCritical() << query.lastError().text();
+		SQLErrorEvent::postSQLError(query.lastError());
 		return false;
 	}
 
-	SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, db.lastError());
+	SQLErrorEvent::postSQLError(db.lastError());
 	return false;
 }
 
@@ -187,20 +187,20 @@ bool IzSQLUtilities::SQLFunctions::objectNameAvailableWithConstrain(const QStrin
 
 	// TODO: uzupełnić o query.bindValue()
 	if (db.getConnection().isOpen()) {
-		QSqlQuery checkName(db.getConnection());
-		checkName.prepare(QStringLiteral("SELECT COUNT(id) FROM ") + tTable + QStringLiteral(" WHERE ") + tColumn + QStringLiteral(" = '") + tObject + QStringLiteral("' AND ") + tType + QStringLiteral(" = ") + QString::number(typeID));
+		QSqlQuery query(db.getConnection());
+		query.prepare(QStringLiteral("SELECT COUNT(id) FROM ") + tTable + QStringLiteral(" WHERE ") + tColumn + QStringLiteral(" = '") + tObject + QStringLiteral("' AND ") + tType + QStringLiteral(" = ") + QString::number(typeID));
 
-		if (checkName.exec()) {
-			checkName.first();
-			return (checkName.value(0).toInt() == 0);
+		if (query.exec()) {
+			query.first();
+			return (query.value(0).toInt() == 0);
 		}
 
-		qCritical() << checkName.lastError().text();
-		SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, checkName.lastError());
+		qCritical() << query.lastError().text();
+		SQLErrorEvent::postSQLError(query.lastError());
 		return false;
 	}
 
-	SQLErrorInterpreterA2::instance()->sqlResponse(IzSQLUtilities::SQLResponseSeverity::SQL_RESPONSE_ERROR, db.lastError());
+	SQLErrorEvent::postSQLError(db.lastError());
 	return false;
 }
 

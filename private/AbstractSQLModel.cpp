@@ -5,6 +5,7 @@
 #include <QtConcurrent>
 
 #include "IzSQLUtilities/SQLConnector.h"
+#include "IzSQLUtilities/SQLErrorEvent.h"
 
 #include "LoadedSQLData.h"
 
@@ -258,6 +259,7 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::f
 	// database connect
 	SqlConnector db(m_databaseType, m_connectionParameters);
 	if (!db.getConnection().isOpen()) {
+		SQLErrorEvent::postSQLError(db.lastError());
 		return { AbstractSQLModel::DataRefreshResult::DatabaseError, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
 	}
 
@@ -278,6 +280,7 @@ IzSQLUtilities::AbstractSQLModel::LoadedData IzSQLUtilities::AbstractSQLModel::f
 	emit sqlQueryStarted();
 	if (!query.exec()) {
 		qWarning() << query.lastError();
+		SQLErrorEvent::postSQLError(query.lastError());
 		return { AbstractSQLModel::DataRefreshResult::QueryError, AbstractSQLModel::DataRefreshType::Full, std::shared_ptr<LoadedSQLData>() };
 	}
 	emit sqlQueryReturned();
@@ -454,12 +457,12 @@ void IzSQLUtilities::AbstractSQLModel::refreshData(const QString& sqlQuery, cons
 	emit dataRefreshStarted();
 
 	if (rows.isEmpty()) {
-		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]() -> LoadedData {
+		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]()->LoadedData {
 			return this->fullDataRefresh(normalizeSqlQuery(query, parameters), parameters);
 		});
 		m_refreshFutureWatcher->setFuture(refreshFuture);
 	} else {
-		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters, rows = rows]() -> LoadedData {
+		QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters, rows = rows]()->LoadedData {
 			return this->partialDataRefresh(normalizeSqlQuery(query, parameters), parameters, rows);
 		});
 		m_refreshFutureWatcher->setFuture(refreshFuture);
@@ -480,7 +483,7 @@ void IzSQLUtilities::AbstractSQLModel::refreshData()
 
 	emit dataRefreshStarted();
 
-	QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]() -> LoadedData {
+	QFuture<LoadedData> refreshFuture = QtConcurrent::run([this, query = m_sqlQuery, parameters = m_sqlQueryParameters]()->LoadedData {
 		return this->fullDataRefresh(normalizeSqlQuery(query, parameters), parameters);
 	});
 	m_refreshFutureWatcher->setFuture(refreshFuture);

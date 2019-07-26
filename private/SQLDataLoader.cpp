@@ -11,7 +11,7 @@
 
 #include "IzSQLUtilities/SQLConnector.h"
 #include "IzSQLUtilities/SQLDataContainer.h"
-#include "IzSQLUtilities/SQLErrorInterpreterA2.h"
+#include "IzSQLUtilities/SQLErrorEvent.h"
 #include "SQLData.h"
 
 IzSQLUtilities::SQLDataLoader::SQLDataLoader(QObject* parent)
@@ -186,7 +186,7 @@ bool IzSQLUtilities::SQLDataLoader::doWork(const QPair<QString, QMap<int, QVaria
 
 void IzSQLUtilities::SQLDataLoader::sendSQLError(const QSqlError& error)
 {
-	SQLErrorInterpreterA2::instance()->sqlResponse(SQLResponseSeverity::SQL_RESPONSE_ERROR, error);
+	SQLErrorEvent::postSQLError(error);
 }
 
 QVariantMap IzSQLUtilities::SQLDataLoader::databaseParameters() const
