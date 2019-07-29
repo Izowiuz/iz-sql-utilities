@@ -32,7 +32,7 @@ namespace IzSQLUtilities
 			}
 		}
 
-		// dtor - closses non-pooled connection on object destruction
+		// dtor - closes connection on object destruction
 		~SqlConnector()
 		{
 			closeConnection();
