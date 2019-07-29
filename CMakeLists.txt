@@ -27,58 +27,36 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # Qt's moc files
 qt5_wrap_cpp(MOC_files
-	"private/SQLDataLoader.h"
-	"include/IzSQLUtilities/SQLProxyModel.h"
-	"include/IzSQLUtilities/SQLTableModel.h"
-	"include/IzSQLUtilities/SQLListModel.h"
-	"include/IzSQLUtilities/SQLQueryBuilder.h"
-	"include/IzSQLUtilities/SQLModel.h"
-	"include/IzSQLUtilities/SQLFunctions.h"
-	"include/IzSQLUtilities/SQLTableProxyModel.h"
 	"include/IzSQLUtilities/AbstractSQLModel.h"
+	"include/IzSQLUtilities/SQLTableModel.h"
+	"include/IzSQLUtilities/SQLTableProxyModel.h"
+	"include/IzSQLUtilities/SQLListModel.h"
+	"include/IzSQLUtilities/SQLFunctions.h"
 )
 
 # library definition
 add_library(${PROJECT_NAME} SHARED
-	"private/SQLQueryBuilder.cpp"
-	"private/SQLOrderByElement.cpp"
-	"private/SQLModel.cpp"
-	"private/SQLJoinElement.cpp"
-	"private/SQLFunctions.cpp"
-	"private/SQLElement.cpp"
-	"private/SQLDataLoader.cpp"
-	"private/SQLDataContainer.cpp"
-	"private/SQLData.cpp"
-	"private/SQLProxyModel.cpp"
-	"private/SQLWhereElement.cpp"
-	"private/SQLTopElement.cpp"
-	"private/SQLTableModel.cpp"
-	"private/SQLTable.cpp"
-	"private/SQLSelectElement.cpp"
-	"private/SQLResponseEvent.cpp"
-	"private/LoadedSQLData.cpp"
-	"private/SQLTableProxyModel.cpp"
 	"private/AbstractSQLModel.cpp"
+	"private/SQLTableModel.cpp"
+	"private/SQLTableProxyModel.cpp"
 	"private/SQLListModel.cpp"
+	"private/SQLFunctions.cpp"
+	"private/LoadedSQLData.cpp"
 	"private/SQLRow.cpp"
 	${MOC_files}
 )
 
 # public headers
 set(PUBLIC_HEADERS
-	"include/IzSQLUtilities/SQLErrorEvent.h"
-	"include/IzSQLUtilities/SQLDataContainer.h"
-	"include/IzSQLUtilities/SQLFunctions.h"
-	"include/IzSQLUtilities/SQLModel.h"
-	"include/IzSQLUtilities/SQLProxyModel.h"
-	"include/IzSQLUtilities/SQLQueryBuilder.h"
+	"include/IzSQLUtilities/AbstractSQLModel.h"
 	"include/IzSQLUtilities/SQLTableModel.h"
+	"include/IzSQLUtilities/SQLTableProxyModel.h"
+	"include/IzSQLUtilities/SQLListModel.h"
+	"include/IzSQLUtilities/SQLFunctions.h"
+	"include/IzSQLUtilities/SQLErrorEvent.h"
 	"include/IzSQLUtilities/IzSQLUtilities_Enums.h"
 	"include/IzSQLUtilities/IzSQLUtilities_Global.h"
 	"include/IzSQLUtilities/SQLConnector.h"
-	"include/IzSQLUtilities/SQLTableProxyModel.h"
-	"include/IzSQLUtilities/AbstractSQLModel.h"
-	"include/IzSQLUtilities/SQLListModel.h"
 	"include/IzSQLUtilities/SQLRow.h"
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
