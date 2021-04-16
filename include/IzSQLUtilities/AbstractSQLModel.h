@@ -1,5 +1,4 @@
-﻿#ifndef IZSQLUTILITIES_ABSTRACTSQLMODEL_H
-#define IZSQLUTILITIES_ABSTRACTSQLMODEL_H
+﻿#pragma once
 
 #include <atomic>
 #include <memory>
@@ -21,285 +20,283 @@
 
 namespace IzSQLUtilities
 {
-	class LoadedSQLData;
+    class LoadedSQLData;
 
-	class IZSQLUTILITIESSHARED_EXPORT AbstractSQLModel : public IzModels::AbstractItemModel
-	{
-		Q_OBJECT
-		Q_DISABLE_COPY(AbstractSQLModel)
+    class IZSQLUTILITIESSHARED_EXPORT AbstractSQLModel : public IzModels::AbstractItemModel
+    {
+        Q_OBJECT
+        Q_DISABLE_COPY(AbstractSQLModel)
 
-		// sql query
-		Q_PROPERTY(QString sqlQuery READ sqlQuery WRITE setSqlQuery NOTIFY sqlQueryChanged FINAL)
+        // sql query
+        Q_PROPERTY(QString sqlQuery READ sqlQuery WRITE setSqlQuery NOTIFY sqlQueryChanged FINAL)
 
-		// sql query parameters
-		Q_PROPERTY(QVariantMap sqlQueryParameters READ sqlQueryParameters WRITE setSqlQueryParameters NOTIFY sqlQueryParametersChanged FINAL)
+        // sql query parameters
+        Q_PROPERTY(QVariantMap sqlQueryParameters READ sqlQueryParameters WRITE setSqlQueryParameters NOTIFY sqlQueryParametersChanged FINAL)
 
-		// true if query is valid
-		Q_PROPERTY(bool queryIsValid READ queryIsValid NOTIFY queryIsValidChanged)
+        // true if query is valid
+        Q_PROPERTY(bool queryIsValid READ queryIsValid NOTIFY queryIsValidChanged)
 
-		// current type of database connection
-		// this also sets databaseName
-		Q_PROPERTY(IzSQLUtilities::DatabaseType databaseType READ databaseType WRITE setDatabaseType NOTIFY databaseTypeChanged FINAL)
+        // current type of database connection
+        // this also sets databaseName
+        Q_PROPERTY(IzSQLUtilities::DatabaseType databaseType READ databaseType WRITE setDatabaseType NOTIFY databaseTypeChanged FINAL)
 
-		// current database type - in string form
-		// this also sets databaseType
-		// WARNING: QML hack - ENUMS are still fubared
-		Q_PROPERTY(QString databaseName READ databaseName WRITE setDatabaseName NOTIFY databaseTypeChanged FINAL)
+        // current database type - in string form
+        // this also sets databaseType
+        // WARNING: QML hack - ENUMS are still fubared
+        Q_PROPERTY(QString databaseName READ databaseName WRITE setDatabaseName NOTIFY databaseTypeChanged FINAL)
 
-		// current connection parameters - empty parameters = parameter are read from dynamic properties of qApp
-		Q_PROPERTY(QVariantMap connectionParameters READ connectionParameters WRITE setConnectionParameters NOTIFY connectionParametersChanged FINAL)
+        // current connection parameters - empty parameters = parameter are read from dynamic properties of qApp
+        Q_PROPERTY(QVariantMap connectionParameters READ connectionParameters WRITE setConnectionParameters NOTIFY connectionParametersChanged FINAL)
 
-	public:
-		// types of data refresh
-		enum class DataRefreshType : uint8_t {
-			Full = 0,
-			Partial
-		};
-		Q_ENUMS(DataRefreshType)
+    public:
+        // types of data refresh
+        enum class DataRefreshType : uint8_t {
+            Full = 0,
+            Partial
+        };
+        Q_ENUMS(DataRefreshType)
 
-		// data refresh results
-		enum class DataRefreshResult : uint8_t {
-			Refreshed = 0,
-			DatabaseError,
-			QueryError
-		};
-		Q_ENUMS(DataRefreshType)
-
-		using LoadedData = std::tuple<AbstractSQLModel::DataRefreshResult, AbstractSQLModel::DataRefreshType, std::shared_ptr<LoadedSQLData>>;
-
-		// ctor
-		AbstractSQLModel(QObject* parent = nullptr);
-
-		// dtor
-		virtual ~AbstractSQLModel() = default;
-
-		// QAbstractItemModel interface start
-
-		// header
-		Q_INVOKABLE QVariant headerData(int section, Qt::Orientation orientation = Qt::Horizontal, int role = Qt::DisplayRole) const override;
-		bool setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role = Qt::EditRole) override;
-
-		// basic functionality
-		QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
-		QModelIndex parent(const QModelIndex& index) const override;
-		int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-		int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+        // data refresh results
+        enum class DataRefreshResult : uint8_t {
+            Refreshed = 0,
+            DatabaseError,
+            QueryError
+        };
+        Q_ENUMS(DataRefreshType)
+
+        using LoadedData = std::tuple<AbstractSQLModel::DataRefreshResult, AbstractSQLModel::DataRefreshType, std::shared_ptr<LoadedSQLData>>;
+
+        // ctor
+        AbstractSQLModel(QObject* parent = nullptr);
+
+        // dtor
+        virtual ~AbstractSQLModel() = default;
+
+        // QAbstractItemModel interface start
+
+        // header
+        Q_INVOKABLE QVariant headerData(int section, Qt::Orientation orientation = Qt::Horizontal, int role = Qt::DisplayRole) const override;
+        bool setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role = Qt::EditRole) override;
+
+        // basic functionality
+        QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
+        QModelIndex parent(const QModelIndex& index) const override;
+        int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        int columnCount(const QModelIndex& parent = QModelIndex()) const override;
 
-		// fetch data dynamically
-		bool hasChildren(const QModelIndex& parent = QModelIndex()) const override;
-		bool canFetchMore(const QModelIndex& parent) const override;
-		void fetchMore(const QModelIndex& parent) override;
+        // fetch data dynamically
+        bool hasChildren(const QModelIndex& parent = QModelIndex()) const override;
+        bool canFetchMore(const QModelIndex& parent) const override;
+        void fetchMore(const QModelIndex& parent) override;
 
-		// QAbstractItemModel interface end
+        // QAbstractItemModel interface end
 
-		// custom model interface start
+        // custom model interface start
 
-		// returns true if given index is in valid range for this model instance
-		inline bool indexIsValid(int index) const
-		{
-			return index < static_cast<int>(m_data.size()) && index >= 0;
-		};
+        // returns true if given index is in valid range for this model instance
+        inline bool indexIsValid(int index) const
+        {
+            return index < static_cast<int>(m_data.size()) && index >= 0;
+        };
 
-		// returns column name for given column index
-		// !WARNING! skips m_columnNameColumnAliasMap
-		QString columnNameFromIndex(int index) const;
+        // returns column name for given column index
+        // !WARNING! skips m_columnNameColumnAliasMap
+        QString columnNameFromIndex(int index) const;
 
-		// returns index for given column name
-		int indexFromColumnName(const QString& column) const;
-
-		// m_sqlQuery getter / setter
-		QString sqlQuery() const;
-		void setSqlQuery(const QString& sqlQuery);
-
-		// m_sqlQueryParameters getter / setter
-		QVariantMap sqlQueryParameters() const;
-		void setSqlQueryParameters(const QVariantMap& sqlQueryParameters);
-
-		// used to clear model data
-		void clearData() override;
+        // returns index for given column name
+        int indexFromColumnName(const QString& column) const;
+
+        // m_sqlQuery getter / setter
+        QString sqlQuery() const;
+        void setSqlQuery(const QString& sqlQuery);
+
+        // m_sqlQueryParameters getter / setter
+        QVariantMap sqlQueryParameters() const;
+        void setSqlQueryParameters(const QVariantMap& sqlQueryParameters);
+
+        // used to clear model data
+        void clearData() override;
 
-		// used to clear saved sql query and its parameters
-		Q_INVOKABLE void clearQueryData();
+        // used to clear saved sql query and its parameters
+        Q_INVOKABLE void clearQueryData();
 
-		// used to refresh data, emits refreshStarted signal, sets sqlQuery and sqlQueryParameters
-		Q_INVOKABLE void refreshData(const QString& sqlQuery, const QVariantMap& sqlParameters = {}, const QList<int>& rows = {});
-
-		// used to refresh data, emits refreshStarted signal, uses set earlier sqlQuery and sqlQueryParameters members
-		Q_INVOKABLE void refreshData();
-
-		// used to add parameter to the query
-		Q_INVOKABLE void addQueryParameter(const QString& parameter, const QVariant& value);
+        // used to refresh data, emits refreshStarted signal, sets sqlQuery and sqlQueryParameters
+        Q_INVOKABLE void refreshData(const QString& sqlQuery, const QVariantMap& sqlParameters = {}, const QList<int>& rows = {});
+
+        // used to refresh data, emits refreshStarted signal, uses set earlier sqlQuery and sqlQueryParameters members
+        Q_INVOKABLE void refreshData();
+
+        // used to add parameter to the query
+        Q_INVOKABLE void addQueryParameter(const QString& parameter, const QVariant& value);
 
-		// adds new row to sql data - returns true on success and false otherwise
-		// defaultInitialize - if set to true missing columns will be initialized to its default type values
-		// uniqueColumnValues - if set wil check if current set of data already has columns with given values - emits duplicateRow() on collision
-		Q_INVOKABLE bool addRow(const QVariantMap& data, bool defaultInitialize = false, const QStringList& uniqueColumnValues = {});
-
-		// removes row from sql data - returns true on success and false otherwise
-		Q_INVOKABLE bool removeRow(int index);
+        // adds new row to sql data - returns true on success and false otherwise
+        // defaultInitialize - if set to true missing columns will be initialized to its default type values
+        // uniqueColumnValues - if set wil check if current set of data already has columns with given values - emits duplicateRow() on collision
+        Q_INVOKABLE bool addRow(const QVariantMap& data, bool defaultInitialize = false, const QStringList& uniqueColumnValues = {});
+
+        // removes row from sql data - returns true on success and false otherwise
+        Q_INVOKABLE bool removeRow(int index);
 
-		// returns true if executed query is different than the last one
-		Q_INVOKABLE bool executedNewQuery() const;
+        // returns true if executed query is different than the last one
+        Q_INVOKABLE bool executedNewQuery() const;
 
-		// returns index of the data row for which values from QVariantMap are equal or -1 if row was not found
-		int findRow(const QVariantMap& columnValues) const;
+        // returns index of the data row for which values from QVariantMap are equal or -1 if row was not found
+        int findRow(const QVariantMap& columnValues) const;
 
-		// returns iterators for m_data vector
-		auto begin()
-		{
-			return m_data.begin();
-		}
-		auto end()
-		{
-			return m_data.end();
-		}
+        // returns iterators for m_data vector
+        auto begin()
+        {
+            return m_data.begin();
+        }
+        auto end()
+        {
+            return m_data.end();
+        }
 
-		// returns const iterators for m_data vector
-		auto cbegin() const
-		{
-			return m_data.cbegin();
-		}
-		auto cend() const
-		{
-			return m_data.cend();
-		}
+        // returns const iterators for m_data vector
+        auto cbegin() const
+        {
+            return m_data.cbegin();
+        }
+        auto cend() const
+        {
+            return m_data.cend();
+        }
 
-		// WARNING: absolutely no boundary checks
-		SQLRow& at(int index)
-		{
-			return *m_data[static_cast<std::size_t>(index)];
-		}
+        // WARNING: absolutely no boundary checks
+        SQLRow& at(int index)
+        {
+            return *m_data[static_cast<std::size_t>(index)];
+        }
 
-		// m_queryIsValid getter
-		bool queryIsValid() const;
+        // m_queryIsValid getter
+        bool queryIsValid() const;
 
-		// m_columnNameColumnAliasMap getter / setter
-		QVariantMap columnNameColumnAliasMap() const;
-		void setColumnNameColumnAliasMap(const QVariantMap& columnNameColumnAliasMap);
+        // m_columnNameColumnAliasMap getter / setter
+        QVariantMap columnNameColumnAliasMap() const;
+        void setColumnNameColumnAliasMap(const QVariantMap& columnNameColumnAliasMap);
 
-		// return types, as QMetaType::Type of given sql column or QMetaType::UnknownType if invalid insex was passed
-		QMetaType::Type columnDataType(int index) const;
+        // return types, as QMetaType::Type of given sql column or QMetaType::UnknownType if invalid insex was passed
+        QMetaType columnDataType(int index) const;
 
-		// custom model interface end
+        // custom model interface end
 
-		// AbstractItemModel interface start
+        // AbstractItemModel interface start
 
-		int roleNameToColumn(const QString& roleName) override;
+        int roleNameToColumn(const QString& roleName) override;
 
-		// AbstractItemModel interface end
+        // AbstractItemModel interface end
 
-		// m_connectionParameters setter / getter
-		QVariantMap connectionParameters() const;
-		void setConnectionParameters(const QVariantMap& connectionParameters);
+        // m_connectionParameters setter / getter
+        QVariantMap connectionParameters() const;
+        void setConnectionParameters(const QVariantMap& connectionParameters);
 
-		// m_databaseType setter / getter
-		IzSQLUtilities::DatabaseType databaseType() const;
-		void setDatabaseType(const IzSQLUtilities::DatabaseType& databaseType);
+        // m_databaseType setter / getter
+        IzSQLUtilities::DatabaseType databaseType() const;
+        void setDatabaseType(const IzSQLUtilities::DatabaseType& databaseType);
 
-		// m_databaseName setter / getter
-		QString databaseName() const;
-		void setDatabaseName(const QString &databaseName);
+        // m_databaseName setter / getter
+        QString databaseName() const;
+        void setDatabaseName(const QString& databaseName);
 
-	protected:
-		// internal data getters
-		std::vector<std::unique_ptr<SQLRow>>& internalData();
-		const std::vector<std::unique_ptr<SQLRow>>& internalData() const;
-		const QMap<int, QString>& indexColumnMap() const;
-		const QHash<QString, int>& columnIndexMap() const;
+    protected:
+        // internal data getters
+        std::vector<std::unique_ptr<SQLRow>>& internalData();
+        const std::vector<std::unique_ptr<SQLRow>>& internalData() const;
+        const QMap<int, QString>& indexColumnMap() const;
+        const QHash<QString, int>& columnIndexMap() const;
 
-		// allows for additiona data parsing during model refresh
-		// executes post data load, right before endResetModel()
-		virtual void additionalDataParsing(bool dataRefreshSucceeded);
+        // allows for additiona data parsing during model refresh
+        // executes post data load, right before endResetModel()
+        virtual void additionalDataParsing(bool dataRefreshSucceeded);
 
-	private:
-		// internal data of the model
-		std::vector<std::unique_ptr<SQLRow>> m_data;
+    private:
+        // internal data of the model
+        std::vector<std::unique_ptr<SQLRow>> m_data;
 
-		// sql column data types
-		std::vector<QMetaType::Type> m_sqlDataTypes;
+        // sql column data types
+        std::vector<QMetaType> m_sqlDataTypes;
 
-		// SQL column names -> indexes relations
-		// contains valid values only post data load
-		QHash<QString, int> m_columnIndexMap;
+        // SQL column names -> indexes relations
+        // contains valid values only post data load
+        QHash<QString, int> m_columnIndexMap;
 
-		// indexes -> SQL column names relations
-		// contains valid values only post data load
-		QMap<int, QString> m_indexColumnMap;
+        // indexes -> SQL column names relations
+        // contains valid values only post data load
+        QMap<int, QString> m_indexColumnMap;
 
-		// column names -> column aliases relations
-		QVariantMap m_columnNameColumnAliasMap;
+        // column names -> column aliases relations
+        QVariantMap m_columnNameColumnAliasMap;
 
-		// column aliases -> column names relations - set in setColumnNameColumnAliasMap()
-		QVariantMap m_columnAliasColumnNameMap;
+        // column aliases -> column names relations - set in setColumnNameColumnAliasMap()
+        QVariantMap m_columnAliasColumnNameMap;
 
-		// raw sql query
-		QString m_sqlQuery;
+        // raw sql query
+        QString m_sqlQuery;
 
-		// last executed sql query
-		QString m_lastQuery;
+        // last executed sql query
+        QString m_lastQuery;
 
-		// sql query parameters
-		QVariantMap m_sqlQueryParameters;
+        // sql query parameters
+        QVariantMap m_sqlQueryParameters;
 
-		// validates given sql query and its parameters
-		// passing silent = true silences errors
-		bool validateSqlQuery(const QString& sqlQuery, const QVariantMap& sqlParameters, bool silent = false);
+        // validates given sql query and its parameters
+        // passing silent = true silences errors
+        bool validateSqlQuery(const QString& sqlQuery, const QVariantMap& sqlParameters, bool silent = false);
 
-		// normalizes parameters of the query: ':parameter' -> :parameter
-		QString normalizeSqlQuery(const QString& sqlQuery, const QVariantMap& sqlParameters) const;
+        // normalizes parameters of the query: ':parameter' -> :parameter
+        QString normalizeSqlQuery(const QString& sqlQuery, const QVariantMap& sqlParameters) const;
 
-		// refresh data future watcher
-		QFutureWatcher<LoadedData>* m_refreshFutureWatcher;
+        // refresh data future watcher
+        QFutureWatcher<LoadedData>* m_refreshFutureWatcher;
 
-		// parses loaded sql data
-		void parseSQLData();
+        // parses loaded sql data
+        void parseSQLData();
 
-		// task for full model refresh
-		LoadedData fullDataRefresh(const QString& sqlQuery, const QVariantMap& sqlParameters);
+        // task for full model refresh
+        LoadedData fullDataRefresh(const QString& sqlQuery, const QVariantMap& sqlParameters);
 
-		// task for partial model refresh
-		LoadedData partialDataRefresh(const QString& sqlQuery, const QVariantMap& sqlParameters, const QList<int>& rows);
+        // task for partial model refresh
+        LoadedData partialDataRefresh(const QString& sqlQuery, const QVariantMap& sqlParameters, const QList<int>& rows);
 
-		// true if query is valid
-		bool m_queryIsValid{ false };
+        // true if query is valid
+        bool m_queryIsValid{ false };
 
-		// true if query is new, not yet executed one
-		bool m_newQuery{ true };
+        // true if query is new, not yet executed one
+        bool m_newQuery{ true };
 
-		// sql database type
-		IzSQLUtilities::DatabaseType m_databaseType{ IzSQLUtilities::DatabaseType::MSSQL };
+        // sql database type
+        IzSQLUtilities::DatabaseType m_databaseType{ IzSQLUtilities::DatabaseType::MSSQL };
 
-		// sql database name
-		// for use in QML
-		QString m_databaseName{ QStringLiteral("MSSQL") };
+        // sql database name
+        // for use in QML
+        QString m_databaseName{ QStringLiteral("MSSQL") };
 
-		// sql connection parameters
-		QVariantMap m_connectionParameters;
+        // sql connection parameters
+        QVariantMap m_connectionParameters;
 
-	signals:
-		// Q_PROPERTY changed signals
-		void sqlQueryChanged();
-		void sqlQueryParametersChanged();
-		void queryIsValidChanged();
-		void databaseTypeChanged();
-		void connectionParametersChanged();
+    signals:
+        // Q_PROPERTY changed signals
+        void sqlQueryChanged();
+        void sqlQueryParametersChanged();
+        void queryIsValidChanged();
+        void databaseTypeChanged();
+        void connectionParametersChanged();
 
-		// emited when SQL query started
-		void sqlQueryStarted();
+        // emited when SQL query started
+        void sqlQueryStarted();
 
-		// emited when SQL query finished
-		void sqlQueryReturned();
+        // emited when SQL query finished
+        void sqlQueryReturned();
 
-		// emited every time model loads new rows
-		void rowsLoaded(int rowsCount);
+        // emited every time model loads new rows
+        void rowsLoaded(int rowsCount);
 
-		// emited when valid query was set
-		void validQuerySet();
+        // emited when valid query was set
+        void validQuerySet();
 
-		// emited when, when adding new data, duplicate row was found
-		void duplicateFound();
-	};
+        // emited when, when adding new data, duplicate row was found
+        void duplicateFound();
+    };
 
 }   // namespace IzSQLUtilities
-
-#endif   // IZSQLUTILITIES_ABSTRACTSQLMODEL_H

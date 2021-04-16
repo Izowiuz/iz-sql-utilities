@@ -1,33 +1,30 @@
-﻿#ifndef IZSQLUTILITIES_SQLLISTMODEL_H
-#define IZSQLUTILITIES_SQLLISTMODEL_H
+﻿#pragma once
 
 #include "IzSQLUtilities/AbstractSQLModel.h"
 #include "IzSQLUtilities_Global.h"
 
 namespace IzSQLUtilities
 {
-	class IZSQLUTILITIESSHARED_EXPORT SQLListModel : public AbstractSQLModel
-	{
-		Q_OBJECT
-		Q_DISABLE_COPY(SQLListModel)
+    class IZSQLUTILITIESSHARED_EXPORT SQLListModel : public AbstractSQLModel
+    {
+        Q_OBJECT
+        Q_DISABLE_COPY(SQLListModel)
 
-	public:
-		// ctor
-		SQLListModel(QObject* parent = nullptr);
+    public:
+        // ctor
+        SQLListModel(QObject* parent = nullptr);
 
-		// QAbstractItemModel interface start
+        // QAbstractItemModel interface start
 
-		QVariant data(const QModelIndex &index, int role) const override;
-		bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::DisplayRole) override;
+        QVariant data(const QModelIndex& index, int role) const override;
+        bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::DisplayRole) override;
 
-		// QAbstractItemModel interface end
+        // QAbstractItemModel interface end
 
-		// AbstractSQLModel interface start
+        // AbstractSQLModel interface start
 
-		void additionalDataParsing(bool dataRefreshSucceeded) override;
+        void additionalDataParsing(bool dataRefreshSucceeded) override;
 
-		// AbstractSQLModel interface end
-	};
-} // namespace IzSQLUtilities
-
-#endif   // IZSQLUTILITIES_SQLLISTMODEL_H
+        // AbstractSQLModel interface end
+    };
+}   // namespace IzSQLUtilities

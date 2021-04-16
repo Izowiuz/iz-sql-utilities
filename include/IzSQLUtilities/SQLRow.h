@@ -1,5 +1,4 @@
-﻿#ifndef IZSQLUTILITIES_SQLROW_H
-#define IZSQLUTILITIES_SQLROW_H
+﻿#pragma once
 
 #include <cstdio>
 #include <vector>
@@ -8,31 +7,29 @@
 
 namespace IzSQLUtilities
 {
-	class SQLRow
-	{
-	public:
-		// ctor
-		SQLRow(std::size_t size);
+    class SQLRow
+    {
+    public:
+        // ctor
+        SQLRow(std::size_t size);
 
-		// dtor
-		~SQLRow() = default;
+        // dtor
+        ~SQLRow() = default;
 
-		// adds row to internal data
-		void addColumnValue(const QVariant& value);
+        // adds row to internal data
+        void addColumnValue(const QVariant& value);
 
-		// sets column to given value
-		bool setColumnValue(int index, const QVariant& value);
+        // sets column to given value
+        bool setColumnValue(int index, const QVariant& value);
 
-		// returns column data for given index
-		QVariant columnValue(int index) const;
+        // returns column data for given index
+        QVariant columnValue(int index) const;
 
-	private:
-		// size of sql row of data -> number of columns
-		std::size_t m_size;
+    private:
+        // size of sql row of data -> number of columns
+        std::size_t m_size;
 
-		// sql column values
-		std::vector<QVariant> m_rowData;
-	};
+        // sql column values
+        std::vector<QVariant> m_rowData;
+    };
 }   // namespace IzSQLUtilities
-
-#endif   // IZSQLUTILITIES_SQLROW_H
